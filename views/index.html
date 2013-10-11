@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+  </head>
+  <body>
+    <video id="selfView" autoplay ></video>
+    <script type="text/javascript">
+    var curUserName = "<%= curUserName %>";
+    </script>
+    <script type="text/javascript" src="/javascripts/hashtable.js"></script>
+    <script type="text/javascript" src="/javascripts/socket.io.js"></script>
+    <script type="text/javascript" src="/javascripts/webrtc-meeting.js"></script>
+  </body>
+</html>

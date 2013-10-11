@@ -1,13 +1,54 @@
+/*global document:true, navigator:true, URL:true, io:true, curUserName:true, HashTable:true*/
+
 var localstream = null;
+var selfView = document.getElementById("selfView");
+
+navigator.getUserMedia = (navigator.getUserMedia ||
+                       navigator.webkitGetUserMedia ||
+                       navigator.mozGetUserMedia ||
+                       navigator.msGetUserMedia);
+
 // get the local stream, show it in the local video element and send it
 navigator.getUserMedia({
-  "audio": true,
   "video": true
 }, function (stream) {
   localstream = stream;
   selfView.src = URL.createObjectURL(localstream);
 });
 
+var user_rtcconns = new HashTable();
+
+var ctl_conn = io.connect('http://localhost');
+ctl_conn.on('connect', function () {
+  ctl_conn.on("heartbeat", function (data) {
+    ctl_conn.emit("ackheartbeat", {});
+  });
+  ctl_conn.on("ackheartbeat", function (data) {
+    console.log("receive ack heartbeat");
+  });
+  ctl_conn.on("useradd", function (data) {
+    user_rtcconns.put(data.name, {});
+  });
+  ctl_conn.on("userremove", function (data) {
+    user_rtcconns.remove(data.name);
+  });
+  ctl_conn.emit("connected", { user : curUserName});
+  var heartbeatTask = setInterval(function () {
+    ctl_conn.emit("heartbeat", {});
+  }, 5000);
+  ctl_conn.on('disconnect', function () {
+    clearInterval(heartbeatTask);
+    var users = user_rtcconns.keys();
+    users.forEach(function (e, i) {
+      if (e) {
+        var user_rtcconn = user_rtcconns.get(e);
+      }
+    });
+    user_rtcconns.clear();
+  });
+});
+
+/*
 
 function createConnectionForUser (username) {
   function createSignalingChannel(username) {
@@ -77,3 +118,4 @@ function createConnectionForUser (username) {
   pc.addStream(localstream);
   pc.createOffer(gotDescription);
 }
+*/
