@@ -1,0 +1,28 @@
+{
+  "name": "webrtc-meeting",
+  "version": "0.0.1",
+  "description": "network meeting based on webrtc",
+  "private": true,
+  "scripts": {
+    "start": "node app.js"
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jeremyxu2010/webrtc-meeting.git"
+  },
+  "keywords": [
+    "network",
+    "meeting",
+    "webrtc"
+  ],
+  "author": "Jeremy Xu <jeremyxu2010@gmail.com>",
+  "license": "The MIT License",
+  "bugs": {
+    "url": "https://github.com/jeremyxu2010/webrtc-meeting/issues"
+  }
+  "dependencies": {
+    "express": "3.3.5",
+    "ejs": "*"
+  }
+}
