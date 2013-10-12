@@ -7,7 +7,8 @@ var express = require('express');
 var index = require('./routes/index');
 var http = require('http');
 var path = require('path');
-var HashTable = require('hashtable');
+var HashTable = require('./util/hashtable');
+var util = require('util');
 
 var app = express();
 
@@ -34,50 +35,26 @@ index(app);
 
 var server = http.createServer(app);
 var io = require('socket.io').listen(server);
-server.listen(app.get('port'), function () {
+server.listen(app.get('port'), "192.168.9.85", function () {
   console.log('Express server listening on port ' + app.get('port'));
 });
 
-var conns = new HashTable();
+var sockets = new HashTable();
 
-io.sockets.on('connection', function (conn) {
-  conn.params = {
-    "user" : null
-  };
-  conn.on("heartbeat", function (data) {
-    conn.emit("ackheartbeat", {});
-  });
-  conn.on("ackheartbeat", function (data) {
-    console.log("receive ack heartbeat");
-  });
-  conn.on("connected", function (data) {
-    conn.params.user = data.user;
-    console.log(data.user + " is connected.");
-    var users = conns.keys();
-    users.forEach(function (e, i) {
-      var user_conn = conns.get(e);
-      try {
-        user_conn.emit("useradd", {name : conn.params.user});
-        conn.emit("useradd", {name : e});
-      } catch (e) {}
-    });
-    conns.put(conn.params.user, conn);
-  });
-  var heartbeatTask = setInterval(function () {
-    conn.emit("heartbeat", {});
-  }, 5000);
-
-  conn.on('disconnect', function () {
-    clearInterval(heartbeatTask);
-    if (conn.params.user) {
-      conns.remove(conn.params.user);
+io.sockets.on('connection', function (socket) {
+  socket.on("message", function (data) {
+    if (data.type === "requestjoin") {
+      var name = data.fromuser;
+      sockets.put(name, socket);
+      socket.broadcast.emit("message", { "type" : "join", "name" : name});
+    } else if (data.type === "ackjoin") {
+      var touser = data.touser;
+      var sock = sockets.get(touser);
+      sock.emit("message", { "type" : "ackjoin", "user": data.fromuser });
+    } else {
+      var touser = data.touser;
+      var sock = sockets.get(touser);
+      sock.emit("message", data);
     }
-    var users = conns.keys();
-    users.forEach(function (e, i) {
-      var user_conn = conns.get(e);
-      try {
-        user_conn.emit("userremove", {name : conn.params.user});
-      } catch (e) {}
-    });
   });
 });
