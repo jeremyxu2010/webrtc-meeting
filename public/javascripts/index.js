@@ -1,5 +1,4 @@
 /*global
-  document:true,
   navigator:true,
   window:true,
   URL:true,
@@ -10,8 +9,6 @@
   msRTCPeerConnection:true,
   RTCSessionDescription:true,
   RTCIceCandidate:true,
-  serverhost:true,
-  serverport:true,
   location:true,
   alert:true
   */
@@ -22,7 +19,7 @@ require.config({
     //to load locally
     "jquery": [
       "http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min",
-      "libs/jquery/jquery"
+      "libs/jquery/jquery.min"
     ],
     "jquery.bootstrap": "libs/bootstrap/dist/js/bootstrap.min",
     "socketio": "libs/socket.io-client/dist/socket.io.min",
@@ -68,10 +65,9 @@ function start($, io, HashTable) {
     "video": true,
     "audio": false
   }, function (stream) {
-    var selfVideoView = document.getElementById("selfVideoView");
+    var selfVideoView = $('#selfVideoView')[0];
     selfVideoView.src = URL.createObjectURL(stream);
-    var selfVideoLabel = document.getElementById("selfVideoLabel");
-    selfVideoLabel.innerHTML = 'ME';
+    $('#selfVideoLabel').html('ME');
 
     var iosocketurl = location.protocol + '//' + location.hostname + (location.port ? ':' + location.port : '');
     var socket = io.connect(iosocketurl);
@@ -91,29 +87,12 @@ function start($, io, HashTable) {
     }
 
     function createRemoteView(user) {
-      var remoteViewContainer = document.createElement("div");
-      remoteViewContainer.id = user + "_removeView";
-      remoteViewContainer.className = "remoteViewCls";
-
-      var remoteView = document.createElement("video");
-      remoteView.muted = true;
-      remoteView.autoplay = true;
-      remoteViewContainer.appendChild(remoteView);
-
-      var remoteViewLabel = document.createElement("div");
-      remoteViewLabel.innerHTML = user.toUpperCase();
-      remoteViewContainer.appendChild(remoteViewLabel);
-
-      document.getElementById("remoteViews").appendChild(remoteViewContainer);
-      return remoteView;
+      $('#remoteViews').append('<div id="' + user + '_remoteView" class="remoteViewCls"><video muted=true autoplay=true/><div>' + user.toUpperCase() + '</div></div>');
+      return $('#remoteViews #' + user + '_remoteView video')[0];
     }
 
     function removeRemoteView(user) {
-      var remoteViewId = user + "_removeView";
-      var remoteViewEle = document.getElementById(remoteViewId);
-      if (remoteViewEle) {
-        remoteViewEle.parentNode.removeChild(remoteViewEle);
-      }
+      $('#remoteViews #' + user + '_remoteView').remove();
     }
 
     function create_rtc_pc(user) {

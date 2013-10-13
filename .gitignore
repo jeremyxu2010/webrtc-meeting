@@ -1,6 +1,8 @@
 node_modules/*
 logs/*
+public/javascripts/libs/*
 webrtc-meeting.sublime-workspace
 webrtc-meeting.sublime-project
 !node_modules/do_not_delete
 !logs/do_not_delete
+!public/javascripts/libs/do_not_delete
