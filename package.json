@@ -24,6 +24,7 @@
   "dependencies": {
     "express": "3.3.5",
     "ejs": "*",
-    "socket.io": "~0.9.16"
+    "socket.io": "~0.9.16",
+    "uuid": "~1.4.1"
   }
 }
