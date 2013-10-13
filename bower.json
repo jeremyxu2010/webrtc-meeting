@@ -1,0 +1,8 @@
+{
+  "name": "webrtc-meeting",
+  "version": "0.0.1",
+  "dependencies": {
+    "jquery": "1.9",
+    "requirejs": null
+  }
+}

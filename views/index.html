@@ -2,7 +2,18 @@
 <html>
   <head>
     <title><%= title %></title>
-    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="./assets/js/html5shiv.js"></script>
+      <script src="./assets/js/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- Favicons -->
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/javascripts/libs/bootstrap/assets/ico/apple-touch-icon-144-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="/javascripts/libs/bootstrap/assets/ico/apple-touch-icon-114-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="/javascripts/libs/bootstrap/assets/ico/apple-touch-icon-72-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" href="/javascripts/libs/bootstrap/assets/ico/apple-touch-icon-57-precomposed.png">
+    <link rel="shortcut icon" href="/javascripts/libs/bootstrap/assets/ico/favicon.png">
   </head>
   <body>
     <div id="selfView">
@@ -13,8 +24,6 @@
     <script type="text/javascript">
     var currentUser = "<%= user %>";
     </script>
-    <script type="text/javascript" src="/javascripts/hashtable.js"></script>
-    <script type="text/javascript" src="/javascripts/socket.io.js"></script>
-    <script type="text/javascript" src="/javascripts/webrtc-meeting.js"></script>
+    <script data-main="/javascripts/index" src="/javascripts/libs/requirejs/require.js"></script>
   </body>
 </html>
