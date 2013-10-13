@@ -41,6 +41,8 @@ navigator.getUserMedia({
 }, function (stream) {
   var selfVideoView = document.getElementById("selfVideoView");
   selfVideoView.src = URL.createObjectURL(stream);
+  var selfVideoLabel = document.getElementById("selfVideoLabel");
+  selfVideoLabel.innerHTML = 'ME';
 
   var iosocketurl = location.protocol + '//' + location.hostname + (location.port ? ':' + location.port : '');
   var socket = io.connect(iosocketurl);
@@ -65,6 +67,7 @@ navigator.getUserMedia({
     remoteViewContainer.className = "remoteViewCls";
 
     var remoteView = document.createElement("video");
+    remoteView.muted = true;
     remoteView.autoplay = true;
     remoteViewContainer.appendChild(remoteView);
 

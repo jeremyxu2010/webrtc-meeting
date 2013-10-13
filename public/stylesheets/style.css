@@ -22,6 +22,10 @@ a {
   text-align: center;
 }
 
+#remoteViews {
+  text-align: center;
+}
+
 .remoteViewCls {
   display: inline-block;
   margin: 10px;
