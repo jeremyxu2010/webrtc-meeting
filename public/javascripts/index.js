@@ -23,11 +23,15 @@ require.config({
     ],
     "jquery.bootstrap": "libs/bootstrap/dist/js/bootstrap.min",
     "socketio": "libs/socket.io-client/dist/socket.io.min",
-    "hashtable": "libs/jshashtable/hashtable"
+    "hashtable": "libs/jshashtable/hashtable",
+    "turnserverapi": "http://api.turnservers.com/api.js?key=ldsFGLkZkKWdpoEagIYXUfCmaEJqsuhS"
   },
   shim: {
     'hashtable': {
       exports: 'Hashtable'
+    },
+    'turnserverapi': {
+      exports: 'turnserversDotComAPI'
     },
     "jquery.bootstrap": {
       deps: ["jquery"]
@@ -43,7 +47,7 @@ require.config({
   waitSeconds: 10
 });
 
-function start($, io, HashTable) {
+function start($, io, HashTable, turnserversDotComAPI) {
   navigator.getUserMedia = (navigator.getUserMedia ||
                          navigator.webkitGetUserMedia ||
                          navigator.mozGetUserMedia ||
@@ -87,7 +91,7 @@ function start($, io, HashTable) {
     }
 
     function createRemoteView(user) {
-      $('#remoteViews').append('<div id="' + user + '_remoteView" class="remoteViewCls"><video autoplay=true/><div>' + user.toUpperCase() + '</div></div>');
+      $('#remoteViews').append('<div id="' + user + '_remoteView" class="remoteViewCls"><video muted=true autoplay=true/><div>' + user.toUpperCase() + '</div></div>');
       return $('#remoteViews #' + user + '_remoteView video')[0];
     }
 
@@ -95,7 +99,8 @@ function start($, io, HashTable) {
       $('#remoteViews #' + user + '_remoteView').remove();
     }
 
-    function create_rtc_pc(user) {
+    function create_rtc_pc(user, callback) {
+      /*
       var configuration = {
         "iceServers": [{
           "url": "stun:stun.ekiga.net:3478?transport=tcp"
@@ -104,31 +109,35 @@ function start($, io, HashTable) {
           "credential": "123456"
         }]
       };
+       */
 
-      var pc = new RTCPeerConnection(configuration);
+      turnserversDotComAPI.iceServers(function (iceServers) {
 
-      pc.addStream(stream);
+        var pc = new RTCPeerConnection({"iceServers": iceServers }, {});
 
-      pc.onicecandidate = function (event) {
-        if (!event || !event.candidate) {
-          return;
-        }
-        var candidate = new RTCIceCandidate(event.candidate);
-        console.log(candidate);
-        socket.emit("message", {
-          "fromuser": currentUser,
-          "touser": user,
-          "type": "iceCandidate",
-          "candidate": event.candidate
-        });
-      };
+        pc.addStream(stream);
 
-      pc.onaddstream = function (event) {
-        var remoteView = createRemoteView(user);
-        remoteView.src = URL.createObjectURL(event.stream);
-      };
-      pcs.put(user, pc);
-      return pc;
+        pc.onicecandidate = function (event) {
+          if (!event || !event.candidate) {
+            return;
+          }
+          var candidate = new RTCIceCandidate(event.candidate);
+          console.log(candidate);
+          socket.emit("message", {
+            "fromuser": currentUser,
+            "touser": user,
+            "type": "iceCandidate",
+            "candidate": event.candidate
+          });
+        };
+
+        pc.onaddstream = function (event) {
+          var remoteView = createRemoteView(user);
+          remoteView.src = URL.createObjectURL(event.stream);
+        };
+        pcs.put(user, pc);
+        callback(null, pc);
+      });
     }
 
 
@@ -155,12 +164,19 @@ function start($, io, HashTable) {
         var fromuser, pc;
         if (data.type === "join") {
           fromuser = data.fromuser;
-          pc = create_rtc_pc(fromuser);
-          socket.emit("message", { "type" : "ackjoin", "fromuser": currentUser,  "touser" : fromuser});
+          create_rtc_pc(fromuser, function (err, result) {
+            if (!err) {
+              socket.emit("message", { "type" : "ackjoin", "fromuser": currentUser,  "touser" : fromuser});
+            }
+          });
         } else if (data.type === "ackjoin") {
           fromuser = data.fromuser;
-          pc = create_rtc_pc(fromuser);
-          offer(pc, fromuser);
+          create_rtc_pc(fromuser, function (err, result) {
+            if (!err) {
+              pc = result;
+              offer(pc, fromuser);
+            }
+          });
         } else if (data.type === "leave") {
           fromuser = data.fromuser;
           destroy_rtc_pc(fromuser);
@@ -199,6 +215,6 @@ function start($, io, HashTable) {
 
 //requiring the scripts in the first argument and then passing the library namespaces into a callback
 //you should be able to console log all of the callback arguments
-require(['jquery', 'socketio', 'hashtable', 'jquery.bootstrap', 'css!libs/bootstrap/dist/css/bootstrap', 'less!../stylesheets/index'], function ($, io, HashTable) {
-  start($, io, HashTable);
+require(['jquery', 'socketio', 'hashtable', 'turnserverapi', 'jquery.bootstrap', 'css!libs/bootstrap/dist/css/bootstrap', 'less!../stylesheets/index'], function ($, io, HashTable, turnserversDotComAPI) {
+  start($, io, HashTable, turnserversDotComAPI);
 });
