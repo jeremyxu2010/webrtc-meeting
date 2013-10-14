@@ -112,8 +112,17 @@ function start($, io, HashTable, turnserversDotComAPI) {
        */
 
       turnserversDotComAPI.iceServers(function (iceServers) {
-
-        var pc = new RTCPeerConnection({"iceServers": iceServers }, {});
+        var tcpIceServers = [];
+        var iceServerUrl;
+        var stunRegex = new RegExp("stun:");
+        var turnRegex = new RegExp("turn:.*transport=tcp");
+        iceServers.forEach(function (iceServer, idx) {
+          iceServerUrl = iceServer.url;
+          if (stunRegex.test(iceServerUrl) || turnRegex.test(iceServerUrl)) {
+            tcpIceServers.push(iceServer);
+          }
+        });
+        var pc = new RTCPeerConnection({"iceServers": tcpIceServers }, {});
 
         pc.addStream(stream);
 
