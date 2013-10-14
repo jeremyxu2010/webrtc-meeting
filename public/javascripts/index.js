@@ -18,7 +18,7 @@ require.config({
     //tries to load jQuery from Google's CDN first and falls back
     //to load locally
     "jquery": [
-      "http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min",
+      /*"http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min",*/
       "libs/jquery/jquery.min"
     ],
     "jquery.bootstrap": "libs/bootstrap/dist/js/bootstrap.min",
@@ -63,7 +63,7 @@ function start($, io, HashTable) {
 
   navigator.getUserMedia({
     "video": true,
-    "audio": false
+    "audio": true
   }, function (stream) {
     var selfVideoView = $('#selfVideoView')[0];
     selfVideoView.src = URL.createObjectURL(stream);
@@ -87,7 +87,7 @@ function start($, io, HashTable) {
     }
 
     function createRemoteView(user) {
-      $('#remoteViews').append('<div id="' + user + '_remoteView" class="remoteViewCls"><video muted=true autoplay=true/><div>' + user.toUpperCase() + '</div></div>');
+      $('#remoteViews').append('<div id="' + user + '_remoteView" class="remoteViewCls"><video autoplay=true/><div>' + user.toUpperCase() + '</div></div>');
       return $('#remoteViews #' + user + '_remoteView video')[0];
     }
 
@@ -97,10 +97,10 @@ function start($, io, HashTable) {
 
     function create_rtc_pc(user) {
       var configuration = {
-        "iceServers": [{
+        "iceServers": [/*{
           "url": "stun:stun.ekiga.net:3478"
-        }, {
-          "url": "turn:test@74.117.58.198:3478",
+        }, */{
+          "url": "turn:test@74.117.58.198:80?transport=tcp",
           "credential": "123456"
         }]
       };
@@ -113,6 +113,8 @@ function start($, io, HashTable) {
         if (!event || !event.candidate) {
           return;
         }
+        var candidate = new RTCIceCandidate(event.candidate);
+        console.log(candidate);
         socket.emit("message", {
           "fromuser": currentUser,
           "touser": user,
