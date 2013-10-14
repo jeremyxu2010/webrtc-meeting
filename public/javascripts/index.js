@@ -97,9 +97,9 @@ function start($, io, HashTable) {
 
     function create_rtc_pc(user) {
       var configuration = {
-        "iceServers": [/*{
-          "url": "stun:stun.ekiga.net:3478"
-        }, */{
+        "iceServers": [{
+          "url": "stun:stun.ekiga.net:3478?transport=tcp"
+        }, {
           "url": "turn:test@74.117.58.198:80?transport=tcp",
           "credential": "123456"
         }]
