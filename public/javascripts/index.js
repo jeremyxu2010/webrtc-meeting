@@ -23,15 +23,11 @@ require.config({
     ],
     "jquery.bootstrap": "libs/bootstrap/dist/js/bootstrap.min",
     "socketio": "libs/socket.io-client/dist/socket.io.min",
-    "hashtable": "libs/jshashtable/hashtable",
-    "turnserverapi": "http://api.turnservers.com/api.js?key=ldsFGLkZkKWdpoEagIYXUfCmaEJqsuhS"
+    "hashtable": "libs/jshashtable/hashtable"
   },
   shim: {
     'hashtable': {
       exports: 'Hashtable'
-    },
-    'turnserverapi': {
-      exports: 'turnserversDotComAPI'
     },
     "jquery.bootstrap": {
       deps: ["jquery"]
@@ -47,7 +43,14 @@ require.config({
   waitSeconds: 10
 });
 
-function start($, io, HashTable, turnserversDotComAPI) {
+function start($, io, HashTable) {
+  var iceServers = [{
+      "url": "stun:stun.ekiga.net:3478?transport=tcp"
+    }, {
+      "url": "turn:test@74.117.58.198:80?transport=tcp",
+      "credential": "123456"
+    }];
+
   navigator.getUserMedia = (navigator.getUserMedia ||
                          navigator.webkitGetUserMedia ||
                          navigator.mozGetUserMedia ||
@@ -99,54 +102,32 @@ function start($, io, HashTable, turnserversDotComAPI) {
       $('#remoteViews #' + user + '_remoteView').remove();
     }
 
-    function create_rtc_pc(user, callback) {
-      /*
-      var configuration = {
-        "iceServers": [{
-          "url": "stun:stun.ekiga.net:3478?transport=tcp"
-        }, {
-          "url": "turn:test@74.117.58.198:80?transport=tcp",
-          "credential": "123456"
-        }]
-      };
-       */
+    function create_rtc_pc(user) {
 
-      turnserversDotComAPI.iceServers(function (iceServers) {
-        var tcpIceServers = [];
-        var iceServerUrl;
-        var stunRegex = new RegExp("stun:");
-        var turnRegex = new RegExp("turn:.*transport=tcp");
-        iceServers.forEach(function (iceServer, idx) {
-          iceServerUrl = iceServer.url;
-          if (stunRegex.test(iceServerUrl) || turnRegex.test(iceServerUrl)) {
-            tcpIceServers.push(iceServer);
-          }
+      var pc = new RTCPeerConnection({"iceServers": iceServers });
+
+      pc.addStream(stream);
+
+      pc.onicecandidate = function (event) {
+        if (!event || !event.candidate) {
+          return;
+        }
+        var candidate = new RTCIceCandidate(event.candidate);
+        console.log(candidate);
+        socket.emit("message", {
+          "fromuser": currentUser,
+          "touser": user,
+          "type": "iceCandidate",
+          "candidate": event.candidate
         });
-        var pc = new RTCPeerConnection({"iceServers": tcpIceServers }, {});
+      };
 
-        pc.addStream(stream);
-
-        pc.onicecandidate = function (event) {
-          if (!event || !event.candidate) {
-            return;
-          }
-          var candidate = new RTCIceCandidate(event.candidate);
-          console.log(candidate);
-          socket.emit("message", {
-            "fromuser": currentUser,
-            "touser": user,
-            "type": "iceCandidate",
-            "candidate": event.candidate
-          });
-        };
-
-        pc.onaddstream = function (event) {
-          var remoteView = createRemoteView(user);
-          remoteView.src = URL.createObjectURL(event.stream);
-        };
-        pcs.put(user, pc);
-        callback(null, pc);
-      });
+      pc.onaddstream = function (event) {
+        var remoteView = createRemoteView(user);
+        remoteView.src = URL.createObjectURL(event.stream);
+      };
+      pcs.put(user, pc);
+      return pc;
     }
 
 
@@ -173,19 +154,12 @@ function start($, io, HashTable, turnserversDotComAPI) {
         var fromuser, pc;
         if (data.type === "join") {
           fromuser = data.fromuser;
-          create_rtc_pc(fromuser, function (err, result) {
-            if (!err) {
-              socket.emit("message", { "type" : "ackjoin", "fromuser": currentUser,  "touser" : fromuser});
-            }
-          });
+          pc = create_rtc_pc(fromuser);
+          socket.emit("message", { "type" : "ackjoin", "fromuser": currentUser,  "touser" : fromuser});
         } else if (data.type === "ackjoin") {
           fromuser = data.fromuser;
-          create_rtc_pc(fromuser, function (err, result) {
-            if (!err) {
-              pc = result;
-              offer(pc, fromuser);
-            }
-          });
+          pc = create_rtc_pc(fromuser);
+          offer(pc, fromuser);
         } else if (data.type === "leave") {
           fromuser = data.fromuser;
           destroy_rtc_pc(fromuser);
@@ -224,6 +198,6 @@ function start($, io, HashTable, turnserversDotComAPI) {
 
 //requiring the scripts in the first argument and then passing the library namespaces into a callback
 //you should be able to console log all of the callback arguments
-require(['jquery', 'socketio', 'hashtable', 'turnserverapi', 'jquery.bootstrap', 'css!libs/bootstrap/dist/css/bootstrap', 'less!../stylesheets/index'], function ($, io, HashTable, turnserversDotComAPI) {
-  start($, io, HashTable, turnserversDotComAPI);
+require(['jquery', 'socketio', 'hashtable', 'jquery.bootstrap', 'css!libs/bootstrap/dist/css/bootstrap', 'less!../stylesheets/index'], function ($, io, HashTable) {
+  start($, io, HashTable);
 });
