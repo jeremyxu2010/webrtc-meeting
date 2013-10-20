@@ -59,8 +59,10 @@ function start($, io, HashTable) {
                          navigator.mozGetUserMedia ||
                          navigator.msGetUserMedia);
   var URL = window.URL || window.webkitURL;
-  var RTCPeerConnection = (window.RTCPeerConnection || window.webkitRTCPeerConnection || window.mozRTCPeerConnection || window.msRTCPeerConnection);
-  var AudioContext = window.AudioContext || window.webkitAudioContext;
+  var RTCPeerConnection = window.RTCPeerConnection || window.webkitRTCPeerConnection || window.mozRTCPeerConnection || window.msRTCPeerConnection;
+  var AudioContext = window.AudioContext || window.webkitAudioContext || window.mozAudioContext || window.msAudioContext;
+  var RTCSessionDescription = window.RTCSessionDescription || window.webkitRTCSessionDescription || window.mozRTCSessionDescription || window.msRTCSessionDescription;
+  var RTCIceCandidate = window.RTCIceCandidate || window.webkitRTCIceCandidate || window.mozRTCIceCandidate || window.msRTCIceCandidate;
 
   function hasGetUserMedia() {
     // Note: Opera is unprefixed.
@@ -193,6 +195,8 @@ function start($, io, HashTable) {
           "type": "offer",
           "description": description
         });
+      }, function () {
+        console.error('createOffer failed.');
       });
     }
 
@@ -280,6 +284,8 @@ function start($, io, HashTable) {
               description.sdp = serializeSdp(description.sdp);
               pc.setLocalDescription(description);
               socket.emit("message", {"fromuser": currentUser, "touser": data.fromuser, type: "answer", description: description});
+            }, function () {
+              console.error('createAnswer failed.');
             });
           }
         } else if (data.type === "answer") {
@@ -297,6 +303,8 @@ function start($, io, HashTable) {
         destroy_rtc_pc(user);
       });
     });
+  }, function () {
+    console.error('getUserMedia failed.');
   });
 }
 
