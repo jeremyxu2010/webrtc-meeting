@@ -211,7 +211,7 @@ function start($, io, HashTable) {
 
     function create_rtc_pc(user) {
 
-      var pc = new RTCPeerConnection({"iceServers": iceServers });
+      var pc = new RTCPeerConnection({"iceServers": iceServers }, { optional: [{ "DtlsSrtpKeyAgreement": true } ] });
 
       pc.addStream(stream);
 
