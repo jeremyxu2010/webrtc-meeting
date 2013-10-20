@@ -2,7 +2,7 @@
   "name": "webrtc-meeting",
   "version": "0.0.1",
   "dependencies": {
-    "jquery": null,
+    "jquery": "1.9.1",
     "requirejs": null,
     "bootstrap": null,
     "jshashtable": null,
